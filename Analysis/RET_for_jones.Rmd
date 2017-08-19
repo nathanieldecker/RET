@@ -16,9 +16,9 @@ lapply(x, library, character.only = TRUE) # load all necessary packages
 
 ## Introduction
 
-This is a project undertaken as part of the Data Science for the 21<sup>st</sup> Century (DS421) National Science Foundation Research Traineeship. Specifically, it is a "Research Experience for Trainees," a required part of the DS421 program where the trainee contributes to research "outside of their primary discipline" for 50% of a summer. This particular project builds off of work previously performed by the author, Nathaniel Decker, (Decker et al., 2017) and the research sponsor, Christopher Jones, (Jones & Kammen, 2014, 2015).
+This is a project undertaken as part of the Data Science for the 21<sup>st</sup> Century (DS421) National Science Foundation Research Traineeship. Specifically, it is a "Research Experience for Trainees," a required part of the DS421 program where the trainee contributes to research "outside of their primary discipline" for 50% of a summer. This particular project builds off of work previously performed by the author, Nathaniel Decker, (Decker et al., 2017) and the research sponsor, Christopher Jones (Jones & Kammen, 2014, 2015).
 
-The income of households has a dramatic impact on the effect of geography on households’ greenhouse gas (GHG) footprints (C. Jones & Kammen, 2014). The actions of local governments have a profound impact on the patterns of income-mixing in the generation of housing (Glaeser, Gyourko, & Saks, 2005; Terner Center for Housing Innovation, n.d.). We know the order-of-magnitude GHG effect of the siting of new housing in California (Decker et al., 2017; C. Jones & Kammen, 2015), but we don’t know the extent to which these impacts vary by the patterns of income mixing. This is an important policy concern because the means of facilitating the development of housing for low- to moderate-income (LMI) families are very different than the means of facilitating the development of market-rate housing.
+The income of households has a dramatic impact on the effect of geography on households’ greenhouse gas (GHG) footprints (C. Jones & Kammen, 2014). High-income households in dense, accessible neighborhoods have a far lower GHG footprint than high-income households in far-flung exurbs, and this difference is much greater than the difference between low-income households in dense and exurban areas. The actions of local governments have a profound impact on the patterns of new housing construction by ther income of the population that moves into the units (Glaeser, Gyourko, & Saks, 2005; Terner Center for Housing Innovation, n.d.). We know the order-of-magnitude GHG effect of the siting of new housing in California (Decker et al., 2017; C. Jones & Kammen, 2015), but we don’t know the extent to which these impacts vary by geographic patterns of the incomes of households that move to those units. This is an important policy concern because the means of facilitating the development of housing for low- to moderate-income (LMI) families are very different than the means of facilitating the development of market-rate housing.
 
 While the GHG implications of siting LMI housing are extensively debated and have a major role in the funding of LMI housing, the GHG implications of the siting of new market-rate housing have not resulted in major policy changes or new programs. The raison d'etre of the largest state source of affordable housing funding, the Affordable Housing and Sustainable Communities Program, is GHG reduction. The criteria for California awards of the largest federal source of funding for affordable housing construction, the Low Income Housing Tax Credit, have been revised to lower the GHG emissions of these subsidized households. While some state processes to plan for and promote the construction of market rate housing, such as the housing element process, do consider the GHG emissions impact of he siting of new market-rate housing, these measures are largely toothless (Dillon 2017). 
 
@@ -710,7 +710,7 @@ The California Department of Finance projects that the state will add `r prettyN
 
 In this thought experiment there is no difference in the location of new development. The same sites are developed in the same cities and suburbs. The difference comes from the buildings that are developed, and whether the buildings are income-restricted or not. In scenario 1 the 
 
-To take the example of the San Francisco Bay Area, under a priority affordable infill scenario extremely low income families will be. This is shown below
+To take the example of the San Francisco Bay Area, under a priority affordable infill scenario extremely low income families will be. concentrated in the seven analysis areas in San Francisco. This is shown below
 
 ```{r map_egs, echo = FALSE}
 ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "XLI")) +
@@ -769,7 +769,7 @@ Our scenarios won't assume that all low income households are in SF or not. It'l
 
 Digital paup.
 
-```{r present_maps, echo=FALSE}
+```{r present_maps, include=FALSE}
 region_map <- ggplot(pumashape_regions) + geom_sf(aes(fill = region))
 income_footprint_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
