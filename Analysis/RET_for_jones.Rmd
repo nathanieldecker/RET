@@ -27,7 +27,9 @@ The calculation of the GHG reduction potential stratified by the cost of housing
 ## Thought Experiment
 
 To estimate how much the income mix of new development matters this analysis takes the form of a thought experiment. Suppose that the next five years of residential development in California follows the geographic patterns of the last five years. Suppose that the income mix of the new residents of the state roughly matches the income mix of the regions of the state they move to. Given these suppositions we consider two scenarios: 
+
 1. **Market Rate Infill**: development of infill market-rate housing is facilitated to the point where all market-rate housing is placed in infill areas and income-restircted housing is constructed in farther-flung locations or, 
+
 2. **Affordable Infill**: subsidies for income-resticted housing are vastly increased and all of this housing is constructed in infill areas, but no policies are put in place to facilitate the development of new market-rate units in infill areas.
 
 The thought experiment isolates the impact of income mix by geography. It also acknolwedges that, while the affordable housing development system in California creates a system of financing that promotes the GHG-resposible siting of housing, this goal has not yet been actualized in the various systems for market-rate development. While efforts have been made to attempt to push municipalities to adjust their land use regulations to facilitate the GHG-resposible development of new housing supply (particularly the state's requirements for Regional Housing Needs Allocations (RHNA), Annual Progress Reports (APRs), and housing elements in comprehensive plans), these systems are ineffective.
@@ -708,6 +710,21 @@ The California Department of Finance projects that the state will add `r prettyN
 
 In this thought experiment there is no difference in the location of new development. The same sites are developed in the same cities and suburbs. The difference comes from the buildings that are developed, and whether the buildings are income-restricted or not. In scenario 1 the 
 
+To take the example of the San Francisco Bay Area, under a priority affordable infill scenario extremely low income families will be. This is shown below
+
+```{r map_egs, echo = FALSE}
+ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "XLI")) +
+  geom_sf(aes(size = infill_aff_hh, color = "orange"), data = filter(puma_point, inc_bin == "XLI"), pch = 1) + scale_size(range = c(0, 6)) +
+  ggtitle("Extremely-Low Income Households Distribution \nAffordable Infill Scenario") +
+  coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
+  theme_bw()
+ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "MOD2HI")) +
+  geom_sf(aes(size = infill_aff_hh, color = "orange"), data = filter(puma_point, inc_bin == "MOD2HI"), pch = 1) + scale_size(range = c(0, 6)) +
+  ggtitle("Moderate-to-High Income Households Distribution \nAffordable Infill Scenario") +
+  coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
+  theme_bw()
+```
+
 This analysis is conservative. 
 
 If the lowest income households are placed in the lowest HH GHG areas:
@@ -728,9 +745,25 @@ big_table %>% ungroup() %>% group_by(inc_bin) %>% summarize(`Households: Market 
   kable(format = 'markdown', format.args = list(big.mark = ','), caption = "Summary Results")
 ```
 
-So it's a difference of `r ((infill_mkt_rate_ghg_total - infill_aff_ghg_total) / infill_mkt_rate_ghg_total) * 100`%. Yeah.
+The market-rate infill scenario results in `r round((((infill_mkt_rate_ghg_total - infill_aff_ghg_total) / infill_aff_ghg_total) * 100), 1)`% less total household emissions than a priority affordable infill scenario. 
 
-## Dividing the State into Regions
+## References
+
+California Department of Finance. (n.d.). Demographic Projections. Retrieved July 1, 2017, from http://www.dof.ca.gov/Forecasting/Demographics/Projections/
+
+Decker, N., Galante, C., Chapple, K., Martin, A., Elkind, E. N., & Hanson, M. (2017). Right Type, Right Place: Assessing the Environmental and Economic Impacts of Infill Residential Development through 2030. Berkeley, CA: Terner Center for Housing Innovation & Center for Law, Energy and the Environment (CLEE). Retrieved from http://next10.org/right-housing
+
+Dillon, L. (2017, June 29). California lawmakers have tried for 50 years to fix the state’s housing crisis. Here’s why they’ve failed. Los Angeles Times. Retrieved from http://www.latimes.com/projects/la-pol-ca-housing-supply/
+
+Glaeser, E. L., Gyourko, J., & Saks, R. (2005). Why Is Manhattan So Expensive? Regulation and the Rise in Housing Prices. The Journal of Law and Economics, 48(2), 331–369. https://doi.org/10.1086/429979
+
+Jones, C. M., & Kammen, D. M. (2014). Spatial Distribution of U.S. Household Carbon Footprints Reveals Suburbanization Undermines Greenhouse Gas Benefits of Urban Population Density. Environmental Science & Technology, 48(2), 895–902. https://doi.org/10.1021/es4034364
+
+Jones, C. M., & Kammen, D. M. (2015). A Consumption-Based Greenhouse Gas Inventory of San Francisco Bay Area Neighborhoods, Cities and Counties: Prioritizing Climate Action for Different Locations. Bay Area Air Quality Management District. Retrieved from http://escholarship.org/uc/item/2sn7m83z
+
+Terner Center for Housing Innovation. (n.d.). Housing Development Dashboard. Retrieved July 1, 2017, from https://ternercenter.berkeley.edu/dashboard
+
+## Appendix
 
 Our scenarios won't assume that all low income households are in SF or not. It'll break the state up into regions and allocate households within regions. DoF releases population projections at the county level so our regions will be groups of counties. We'll divide the state up using area median income levels set by HUD. 
 
@@ -772,7 +805,7 @@ for(i in c("XLI", "VLI", "SLI", "MOD2HI")){
 income_footprint_sf_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
     ggplot() + geom_sf(aes(fill = ghg_per_person)) +
-    scale_fill_viridis("Per-HH GHG Footprint") +
+    scale_fill_viridis("Per-person GHG Footprint") +
     ggtitle(paste0("Per-HH GHG Footprint \nSan Francisco Bay Area \nSynthetic Households: ", inc)) +
     coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
     theme_bw()
@@ -785,26 +818,15 @@ map_SF_XLI
 map_SF_VLI
 map_SF_SLI
 map_SF_MOD2HI
-ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "MOD2HI")) +
-  geom_sf(aes(size = infill_mkt_rate_hh, color = "orange"), data = filter(puma_point, inc_bin == "MOD2HI"), pch = 1) + scale_size(range = c(0, 6)) +
-  ggtitle("Moderate to High Income Households Distribution \nMarket-Rate Infill Scenario") +
-  coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
-  theme_bw()
+# ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "MOD2HI")) +
+#   geom_sf(aes(size = infill_mkt_rate_hh, color = "orange"), data = filter(puma_point, inc_bin == "MOD2HI"), pch = 1) + scale_size(range = c(0, 6)) +
+#   ggtitle("Moderate-to-High Income Households Distribution \nMarket-Rate Infill Scenario") +
+#   coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
+#   theme_bw()
+# ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "XLI")) +
+#   geom_sf(aes(size = infill_mkt_rate_hh, color = "orange"), data = filter(puma_point, inc_bin == "XLI"), pch = 1) + scale_size(range = c(0, 6)) +
+#   ggtitle("Extremely-Low Income Households Distribution \nMarket-Rate Infill Scenario") +
+#   coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
+#   theme_bw()
 ```
-
-## References
-
-California Department of Finance. (n.d.). Demographic Projections. Retrieved July 1, 2017, from http://www.dof.ca.gov/Forecasting/Demographics/Projections/
-
-Decker, N., Galante, C., Chapple, K., Martin, A., Elkind, E. N., & Hanson, M. (2017). Right Type, Right Place: Assessing the Environmental and Economic Impacts of Infill Residential Development through 2030. Berkeley, CA: Terner Center for Housing Innovation & Center for Law, Energy and the Environment (CLEE). Retrieved from http://next10.org/right-housing
-
-Dillon, L. (2017, June 29). California lawmakers have tried for 50 years to fix the state’s housing crisis. Here’s why they’ve failed. Los Angeles Times. Retrieved from http://www.latimes.com/projects/la-pol-ca-housing-supply/
-
-Glaeser, E. L., Gyourko, J., & Saks, R. (2005). Why Is Manhattan So Expensive? Regulation and the Rise in Housing Prices. The Journal of Law and Economics, 48(2), 331–369. https://doi.org/10.1086/429979
-
-Jones, C. M., & Kammen, D. M. (2014). Spatial Distribution of U.S. Household Carbon Footprints Reveals Suburbanization Undermines Greenhouse Gas Benefits of Urban Population Density. Environmental Science & Technology, 48(2), 895–902. https://doi.org/10.1021/es4034364
-
-Jones, C. M., & Kammen, D. M. (2015). A Consumption-Based Greenhouse Gas Inventory of San Francisco Bay Area Neighborhoods, Cities and Counties: Prioritizing Climate Action for Different Locations. Bay Area Air Quality Management District. Retrieved from http://escholarship.org/uc/item/2sn7m83z
-
-Terner Center for Housing Innovation. (n.d.). Housing Development Dashboard. Retrieved July 1, 2017, from https://ternercenter.berkeley.edu/dashboard
 
