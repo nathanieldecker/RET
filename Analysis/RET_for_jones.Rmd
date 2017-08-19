@@ -10,7 +10,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning = FALSE)
 rm(list=ls())
-x <- c("ggmap", "sf", "tidyverse", "foreign", 'forcats', 'censusapi', 'stringr', 'viridis', 'rvest', 'ggplot2') # , "tmap", "rgdal", "rgeos", "maptools", "tidyr"
+x <- c("ggmap", "sf", "tidyverse", "foreign", 'forcats', 'censusapi', 'stringr', 'viridis', 'rvest', 'ggplot2', 'knitr') # , "tmap", "rgdal", "rgeos", "maptools", "tidyr"
 lapply(x, library, character.only = TRUE) # load all necessary packages
 ```
 
@@ -26,14 +26,15 @@ The calculation of the GHG reduction potential stratified by the cost of housing
 
 ## Thought Experiment
 
-To estimate how much the income mix of new development matters this analysis takes the form of a thought experiment. Suppose that the next five years of residential development in California follows the geographic patterns of the last five years. Suppose that the income mix of the new residents of the state roughly matches the income mix of the regions of the state they move to. Given these suppositions we consider two scenarios: (i) subsidies for income-resticted housing are vastly increased and all of this housing is constructed in infill areas, but no policies are put in place to facilitate the development of new market-rate units in infill areas or (ii) development of infill market-rate housing is facilitated to the point where all market-rate housing is placed in infill areas and income-restircted housing is constructed in farther-flung locations.
+To estimate how much the income mix of new development matters this analysis takes the form of a thought experiment. Suppose that the next five years of residential development in California follows the geographic patterns of the last five years. Suppose that the income mix of the new residents of the state roughly matches the income mix of the regions of the state they move to. Given these suppositions we consider two scenarios: 
+1. **Market Rate Infill**: development of infill market-rate housing is facilitated to the point where all market-rate housing is placed in infill areas and income-restircted housing is constructed in farther-flung locations or, 
+2. **Affordable Infill**: subsidies for income-resticted housing are vastly increased and all of this housing is constructed in infill areas, but no policies are put in place to facilitate the development of new market-rate units in infill areas.
 
 The thought experiment isolates the impact of income mix by geography. It also acknolwedges that, while the affordable housing development system in California creates a system of financing that promotes the GHG-resposible siting of housing, this goal has not yet been actualized in the various systems for market-rate development. While efforts have been made to attempt to push municipalities to adjust their land use regulations to facilitate the GHG-resposible development of new housing supply (particularly the state's requirements for Regional Housing Needs Allocations (RHNA), Annual Progress Reports (APRs), and housing elements in comprehensive plans), these systems are ineffective.
 
 ## Results
 
-```{r analysis, include=FALSE}
-# I was initially thinking there'd be separate tables for each scale of analysis: region, PUMA and income bin within each PUMA. I now think it might just have been better to have one big dataframe at the PUMA & income bin level
+```{r cofc, include=FALSE}
 ######################################## PUMA Table #####################################
 ############## Census of Construction & Geographic Pattern of New Development ###########
 ###### Establish Geog. Patterns of Development by Allocating Bldg Permits to PUMAS ######
@@ -79,6 +80,8 @@ namer <- function(x,cp_code,fips){
 }
 # Ok, so this crosswalk shows us there's weirdness with places and counties. Some places have one name, but different FIPS for the counties they're in (e.g. Bear Valley) some places span multiple counties, but have only one FIPS (e.g. Aromas). There are only 5 places like Aromas, where one FIPs straddles multiple counties. The places with separate FIPS should be just fine, I can join them using my place_county_codes. The places like Aromas will give me a problem, because I'll be creating a new place_county code that won't match with anything but associated with a place_name that will match. This opens the possibility that a place will either be doubled or dropped. I'll need to match by place-name or place_fips. Given that there are only five problem places, maybe I can just put them in one county or another and not have a big problem. So I'll need to do two things here: consolidate the Aromas manually and then append the FIPS to the placenames to separate out the Bear Valleys
 # This will mean my county totals will be very slightly off, but my state totals should be just fine.
+```
+```{r crosswalk_1, include= FALSE}
 mo_plc_to_cnty <- read_csv("../Data/CrosswalkPlace2Countyhaus.csv", col_names=c('FIPS_state', 'placefp14', 'county', 'State_Postal_Code', 'cntyname', 'placefp', 'placenm', 'Place_Name_2014', 'Total_HUs_2010', "placefp14_to_county_alloc_factor"), skip = 1) %>%
   dplyr::filter(FIPS_state == "06")
 split_fips <- drop_na(tibble(Place_Name_2014 = unique(mo_plc_to_cnty$Place_Name_2014[duplicated(mo_plc_to_cnty$placefp14)]),
@@ -154,7 +157,8 @@ puma_table <- puma_table %>% mutate(county = ifelse(puma12 == '05908', '06059', 
 # Now we consolidate permitted units down to PUMAs, or maybe we have to associate mfis because we still have counties here.
 sum(puma_table$Total_HUs_2010, na.rm = TRUE) == 13680081
 sum(five_year_totals$permitted_units) == sum(puma_table$permitted_units, na.rm = TRUE)
-
+```
+```{r census_pulls, include=FALSE}
 # Now I'll add population density to the PUMA attributes by pulling in population from the Census API and pulling in land area from the shapefile
 # apis <- listCensusApis()
 # View(apis) # https://api.census.gov/data/2015/acs5
@@ -305,7 +309,8 @@ puma_table <- left_join(puma_table, region_table, by = 'region') %>%
 
 hh_size_adj <- tibble(hh_size = 1:20, 
                       size_factor = c(0.70, 0.80, 0.90, seq(from = 1, to = (1+(.08*(20-4))), by = .08)))
-
+```
+```{r PUMS, include=FALSE}
 ######### Adding ACS data ##############
 # 2011-2015 ACS PUMS : PUMA00, PUMA10, ADJINC, WGTP, NP, RMSP, VACS, VEH, HINCP
 x_walk_puma <- read_csv('../Data/CrosswalkPUMA002PUMA10haus.csv')
@@ -345,11 +350,12 @@ acs <- left_join(acs, puma_table, by = c('puma' = 'puma12')) %>%
             inc_bin = hh_inc_binner(mfi_adjusted, NP, HINCP),
             ami_level = hh_ami_ider(mfi_adjusted, NP, HINCP))
 # I want a histogram of the AMIs, colored by region
-ggplot(acs, aes(ami_level)) +
-  geom_histogram(binwidth = 0.01)
-ggplot(acs, aes(ami_level, colour = as.factor(region))) + geom_freqpoly(aes(y=..count../sum(..count..)), binwidth = 0.05) + coord_cartesian(xlim = c(0, 2))
-
-ggplot(data = acs) + geom_density(aes(x = ami_level, color = as.factor(region)), kernel = "gaussian", adjust = .05)  + coord_cartesian(xlim = c(0, 5))
+# The below isn't that interesting, but the code does work.
+# ggplot(acs, aes(ami_level)) +
+#   geom_histogram(binwidth = 0.01)
+# ggplot(acs, aes(ami_level, colour = as.factor(region))) + geom_freqpoly(aes(y=..count../sum(..count..)), binwidth = 0.05) + coord_cartesian(xlim = c(0, 2))
+# 
+# ggplot(data = acs) + geom_density(aes(x = ami_level, color = as.factor(region)), kernel = "gaussian", adjust = .05)  + coord_cartesian(xlim = c(0, 5))
 # I'd be interesting to calculate the % of AMI for each household, then chart these distributions by region. Right now the analysis only yields pretty slight differences in distribution, but I bet you'd see some real differences if you did a proper histogram using the raw HH AMI method.
 # Apparently it's not that interesting. I would have expected that the higest income parts of the state would have a bimodal distribution, but that isn't the case, at least with the regions as I've defined them.
 region_table_1 <- group_by(acs, region, inc_bin) %>% 
@@ -399,24 +405,29 @@ synth_hh <- mutate(synth_hh, ghg_per_hh = ghg_lm$coefficients['(Intercept)']+ (g
 #synth_hh_1 <- mutate_at(synth_hh, .cols = one_of(ghg_vars), .funs = scale(.))
 
 # Could also do a quick plot by income, GHGe and color by income bin
-ggplot(data = synth_hh) + geom_point(mapping = aes(x = HINCP_avr, y = ghg_per_hh, color = inc_bin))
-
+# again the below works, but isn't particularly interesting
+# ggplot(data = synth_hh) + geom_point(mapping = aes(x = HINCP_avr, y = ghg_per_hh, color = inc_bin))
+```
+```{r assemble_big_table, include = FALSE}
 big_table <- left_join(synth_hh, select(puma_table, puma12, PUMA12_Name, region, regional_deve_share), by = c('puma' = 'puma12')) %>%
   left_join(region_table, by = 'region') %>%
   mutate(deve_max = (regional_deve_share * pop_growth) / NP_avr,
          region = as.factor(region))
-ggplot(data = big_table) + geom_point(mapping = aes(x = HINCP_avr, y = ghg_per_hh, color = region)) # plot synthetic HH
+# ggplot(data = big_table) + geom_point(mapping = aes(x = HINCP_avr, y = ghg_per_hh, color = region)) # plot synthetic HH
 
 ## You know, it'd be interesting to map the per_hh GHG emissions of HH by geography
 # pumashape_f <- fortify(pumashape)
 # pumashape$id <- row.names(pumashape@data)
 # pumashape_f <- left_join(pumashape_f, pumashape@data, by = c('order' = 'id'))
+```
+```{r shape_join, include = FALSE}
 pumashape_joined <- left_join(pumashape_raw, big_table, by = c('PUMACE10' = 'puma'))
 # So in the absence of professional help to deal with the simultaneous equations problems, let's do this:
 # 1: use the development allocation and population projections to allocate a maximum number of _people_ to a PUMA
 # 2: Then use this number of people to tranlate into the number of households. For this we'll need an allocation function, this may involve order(), and it may involve a counter with a for loop. This'll be a slow way of doing things, but it should work.
 # Now we'll need to allocate/apportion
-
+```
+```{r map_init, include=FALSE}
 # devtools::install_github("tidyverse/ggplot2")
 region_map <- ggplot(pumashape_joined) + geom_sf(aes(fill = region))
 income_footprint_mapper <- function(shp, inc){
@@ -430,10 +441,10 @@ for(i in c("XLI", "VLI", "SLI", "MOD2HI")){
   nam <- paste("map", i, sep = "_")
   assign(nam, income_footprint_mapper(pumashape_joined, i))
 }
-map_XLI
-map_VLI
-map_SLI
-map_MOD2HI
+# map_XLI
+# map_VLI
+# map_SLI
+# map_MOD2HI
 income_footprint_la_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
   ggplot() + geom_sf(aes(fill = ghg_per_hh)) +
@@ -446,10 +457,10 @@ for(i in c("XLI", "VLI", "SLI", "MOD2HI")){
   nam <- paste("map_LA", i, sep = "_")
   assign(nam, income_footprint_la_mapper(pumashape_joined, i))
 }
-map_LA_XLI
-map_LA_VLI
-map_LA_SLI
-map_LA_MOD2HI
+# map_LA_XLI
+# map_LA_VLI
+# map_LA_SLI
+# map_LA_MOD2HI
 income_footprint_sf_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
     ggplot() + geom_sf(aes(fill = ghg_per_hh)) +
@@ -462,10 +473,10 @@ for(i in c("XLI", "VLI", "SLI", "MOD2HI")){
   nam <- paste("map_SF", i, sep = "_")
   assign(nam, income_footprint_sf_mapper(pumashape_joined, i))
 }
-map_SF_XLI
-map_SF_VLI
-map_SF_SLI
-map_SF_MOD2HI
+# map_SF_XLI
+# map_SF_VLI
+# map_SF_SLI
+# map_SF_MOD2HI
 ### So what does this tell us? It tells us that geographic patterns of GHG emissions are roughly, but not exactly the same for all income levels
 
 #pumashape@data <- left_join(pumashape@data, big_table, by = c('PUMACE10' = 'puma'))
@@ -520,6 +531,8 @@ map_SF_MOD2HI
 
 # split_big_table <- big_table %>% split(.$region) 
 # big_table_region_1 <- filter(big_table, region == "1")
+```
+```{r final_analysis, include=FALSE}
 inc_levels <- unique(big_table$inc_bin)
 n_regions <- unique(big_table$region)
 puma_blanks <- rep(0, n_distinct(big_table$puma))
@@ -602,7 +615,8 @@ big_table %>% group_by(inc_bin) %>% summarize(GHGe_mkt = sum(infill_mkt_rate_ghg
 # So that's mystifying: by prioritizing infill MOD2HI development we end up with this group emitting more.
 # Why could this be? It could be that we're allocating people and not households, I doubt that that matters, though
 # So it's allocating properly, the average household emissions of XLI households are lower in the infill aff scenario, and this difference is big.
-
+```
+```{r fancy_maps, include = FALSE}
 puma_point <- st_centroid(pumashape_raw) %>% right_join(big_table, by = c('PUMACE10' = 'puma'))
 ggplot() + geom_sf(aes(fill = region), data = pumashape_joined) + 
   geom_sf(aes(size = infill_mkt_rate_hh), data = filter(puma_point, inc_bin == "XLI")) + scale_size(range = c(0, 1)) +
@@ -690,12 +704,15 @@ ggplot() +
 # This means I'll also need to crosswalk counties to PUMAs
 ```
 
-So actually, let's just assume that the next five years of construction (2016-2020) will follow the patterns of the last 5. The California Department of Finance projects that the state will add `r as.integer(40719999-39059809)` new residents in `r as.integer(13864699-13236154)` households.
+The California Department of Finance projects that the state will add `r prettyNum(as.integer(40719999-39059809), big.mark = ",")` new residents in `r prettyNum(as.integer(13864699-13236154), big.mark = ",")` households. This analysis assumes that the growth projected by the department of finance over the next 5 years will be accomodated with new housing construction and that this volume will roughly follow the regional patterns predicted by the department of finance. Within each region the neighborhood patterns of development will reflect the patterns of the past 5 years. (See the appendix for a description of the methods.)
+
+In this thought experiment there is no difference in the location of new development. The same sites are developed in the same cities and suburbs. The difference comes from the buildings that are developed, and whether the buildings are income-restricted or not. In scenario 1 the 
+
+This analysis is conservative. 
 
 If the lowest income households are placed in the lowest HH GHG areas:
 [Table that breaks out total GHGe by income bracket, summed up across the state, with a total row at the bottom]
 ```{r results_table, echo= FALSE, results = 'asis'}
-library(knitr)
 big_table %>% ungroup() %>% group_by(inc_bin) %>% summarize(`Households: Market Infill (1,000s)` = sum(infill_mkt_rate_hh) / 1000,
                                               `Households: Affordable Infill (1,000s)` = sum(infill_aff_hh) / 1000,
                                               `Emissions: Market Infill (1,000s)` = sum(infill_mkt_rate_ghg) / 1000,
@@ -706,12 +723,12 @@ big_table %>% ungroup() %>% group_by(inc_bin) %>% summarize(`Households: Market 
             .funs = funs(round(. ,0))) %>%
   mutate_at(.vars = vars(`Per-HH Emissions: Market Infill`, `Per-HH Emissions: Affordable Infill`),
             .funs = funs(round(. ,1))) %>%
-  rbind(c("Total",as.list(unlist(t(colSums(.[,-1])))[1:6]))) %>%
+  select(`Income Category` = inc_bin, 2:7) %>%
+  rbind(c("Total",as.list(unlist(t(colSums(.[,-1])))[1:4]),as.list(unlist(t(colMeans(.[,-1])))[5:6]))) %>%
   kable(format = 'markdown', format.args = list(big.mark = ','), caption = "Summary Results")
 ```
 
-If the highest income households are placed in the lowest HH GHG areas:
-[Table that breaks out total GHGe by income bracket, summed up across the state, with a total row at the bottom]
+So it's a difference of `r ((infill_mkt_rate_ghg_total - infill_aff_ghg_total) / infill_mkt_rate_ghg_total) * 100`%. Yeah.
 
 ## Dividing the State into Regions
 
@@ -719,8 +736,8 @@ Our scenarios won't assume that all low income households are in SF or not. It'l
 
 Digital paup.
 
-```{r maps, echo=FALSE}
-region_map <- ggplot(pumashape_joined) + geom_sf(aes(fill = region))
+```{r present_maps, echo=FALSE}
+region_map <- ggplot(pumashape_regions) + geom_sf(aes(fill = region))
 income_footprint_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
     ggplot() + geom_sf(aes(fill = ghg_per_hh)) +
@@ -732,10 +749,10 @@ for(i in c("XLI", "VLI", "SLI", "MOD2HI")){
   nam <- paste("map", i, sep = "_")
   assign(nam, income_footprint_mapper(pumashape_joined, i))
 }
-map_XLI
-map_VLI
-map_SLI
-map_MOD2HI
+# map_XLI
+# map_VLI
+# map_SLI
+# map_MOD2HI
 income_footprint_la_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
   ggplot() + geom_sf(aes(fill = ghg_per_hh)) +
@@ -748,13 +765,13 @@ for(i in c("XLI", "VLI", "SLI", "MOD2HI")){
   nam <- paste("map_LA", i, sep = "_")
   assign(nam, income_footprint_la_mapper(pumashape_joined, i))
 }
-map_LA_XLI
-map_LA_VLI
-map_LA_SLI
-map_LA_MOD2HI
+# map_LA_XLI
+# map_LA_VLI
+# map_LA_SLI
+# map_LA_MOD2HI
 income_footprint_sf_mapper <- function(shp, inc){
   filter(shp, inc_bin == inc) %>%
-    ggplot() + geom_sf(aes(fill = ghg_per_hh)) +
+    ggplot() + geom_sf(aes(fill = ghg_per_person)) +
     scale_fill_viridis("Per-HH GHG Footprint") +
     ggtitle(paste0("Per-HH GHG Footprint \nSan Francisco Bay Area \nSynthetic Households: ", inc)) +
     coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
