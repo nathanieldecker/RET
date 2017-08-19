@@ -712,7 +712,7 @@ In this thought experiment there is no difference in the location of new develop
 
 To take the example of the San Francisco Bay Area, under a priority affordable infill scenario extremely low income families will be. concentrated in the seven analysis areas in San Francisco. This is shown below
 
-```{r map_egs, echo = FALSE}
+```{r map_egs, include = FALSE}
 ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "XLI")) +
   geom_sf(aes(size = infill_aff_hh, color = "orange"), data = filter(puma_point, inc_bin == "XLI"), pch = 1) + scale_size(range = c(0, 6)) +
   ggtitle("Extremely-Low Income Households Distribution \nAffordable Infill Scenario") +
