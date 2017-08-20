@@ -10,7 +10,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning = FALSE)
 rm(list=ls())
-x <- c("ggmap", "sf", "tidyverse", "foreign", 'forcats', 'censusapi', 'stringr', 'viridis', 'rvest', 'ggplot2', 'knitr') # , "tmap", "rgdal", "rgeos", "maptools", "tidyr"
+x <- c("ggmap", "sf", "tidyverse", "foreign", 'forcats', 'censusapi', 'stringr', 'viridis', 'ggplot2', 'knitr') # , "tmap", "rgdal", "rgeos", "maptools", "tidyr", 'rvest'
 lapply(x, library, character.only = TRUE) # load all necessary packages
 ```
 
@@ -18,21 +18,21 @@ lapply(x, library, character.only = TRUE) # load all necessary packages
 
 This is a project undertaken as part of the Data Science for the 21<sup>st</sup> Century (DS421) National Science Foundation Research Traineeship. Specifically, it is a "Research Experience for Trainees," a required part of the DS421 program where the trainee contributes to research "outside of their primary discipline" for 50% of a summer. This particular project builds off of work previously performed by the author, Nathaniel Decker, (Decker et al., 2017) and the research sponsor, Christopher Jones (Jones & Kammen, 2014, 2015).
 
-The income of households has a dramatic impact on the effect of geography on households’ greenhouse gas (GHG) footprints (C. Jones & Kammen, 2014). High-income households in dense, accessible neighborhoods have a far lower GHG footprint than high-income households in far-flung exurbs, and this difference is much greater than the difference between low-income households in dense and exurban areas. The actions of local governments have a profound impact on the patterns of new housing construction by ther income of the population that moves into the units (Glaeser, Gyourko, & Saks, 2005; Terner Center for Housing Innovation, n.d.). We know the order-of-magnitude GHG effect of the siting of new housing in California (Decker et al., 2017; C. Jones & Kammen, 2015), but we don’t know the extent to which these impacts vary by geographic patterns of the incomes of households that move to those units. This is an important policy concern because the means of facilitating the development of housing for low- to moderate-income (LMI) families are very different than the means of facilitating the development of market-rate housing.
+The income of households has a dramatic impact on the effect of geography on households’ greenhouse gas (GHG) footprints (C. Jones & Kammen, 2014). High-income households in dense, accessible neighborhoods have a far lower GHG footprint than high-income households in far-flung exurbs, and this difference is much greater than the difference between low-income households in dense and exurban areas. The actions of local governments have a profound impact on the patterns of new housing construction by the income of the population that moves into the units (Glaeser, Gyourko, & Saks, 2005; Terner Center for Housing Innovation, n.d.). The order-of-magnitude GHG effect of the siting of new housing in California has been shown (Decker et al., 2017; C. Jones & Kammen, 2015), but the extent to which these impacts vary by geographic patterns of the incomes of households that move to those units is unknown. This is an important policy concern because the means of facilitating the development of housing for low- to moderate-income (LMI) families are very different than the means of facilitating the development of market-rate housing.
 
-While the GHG implications of siting LMI housing are extensively debated and have a major role in the funding of LMI housing, the GHG implications of the siting of new market-rate housing have not resulted in major policy changes or new programs. The raison d'etre of the largest state source of affordable housing funding, the Affordable Housing and Sustainable Communities Program, is GHG reduction. The criteria for California awards of the largest federal source of funding for affordable housing construction, the Low Income Housing Tax Credit, have been revised to lower the GHG emissions of these subsidized households. While some state processes to plan for and promote the construction of market rate housing, such as the housing element process, do consider the GHG emissions impact of he siting of new market-rate housing, these measures are largely toothless (Dillon 2017). 
+While the GHG implications of siting LMI housing are extensively debated and have a major role in the funding of LMI housing, the GHG implications of the siting of new market-rate housing have not resulted in major policy changes or new programs. The raison d'etre of the largest state source of affordable housing funding, the Affordable Housing and Sustainable Communities Program, is GHG reduction. The criteria for California awards of the largest federal source of funding for affordable housing construction, the Low Income Housing Tax Credit, have been revised to lower the GHG emissions of these subsidized households. While some state processes to plan for and promote the construction of market rate housing, such as the housing element process, do consider the GHG emissions impact of he siting of new market-rate housing, these measures are largely ineffective (Dillon 2017). 
 
-The calculation of the GHG reduction potential stratified by the cost of housing can be used to address this pressing policy issue. This calculation should help clarify the GHG emissions payoff of regulatory changes to facilitate market-rate housing generation in infill areas.
+The calculation of the GHG reduction potential stratified by the income of house can be used to understand this pressing policy issue. This calculation should help clarify the GHG emissions payoff of regulatory changes to facilitate market-rate housing generation in infill areas.
 
 ## Thought Experiment
 
-To estimate how much the income mix of new development matters this analysis takes the form of a thought experiment. Suppose that the next five years of residential development in California follows the geographic patterns of the last five years. Suppose that the income mix of the new residents of the state roughly matches the income mix of the regions of the state they move to. Given these suppositions we consider two scenarios: 
+To estimate how much the income mix of new development matters this analysis takes the form of a thought experiment. Suppose that the next five years of residential development in California follows the geographic patterns of the last five years. Suppose that the income mix of the new residents of the state roughly matches the income mix of the regions of the state they move to. Suppose that the total regional volume of population increase preducted by the state Department of Finance is correct. One of the most important suppositions in this analysis is an attempt to disentangle the two major drivers of household ghg emissions: income and location of residence. This analysis assumes that new households and units in an area roughly mirror the existing residents and units of an area, controlling for income. This means that new market-rate units look roughly-like existing higher-cost units and willbe occupied by moderate-to-high income residents that have roughly the same characterisitics as existing moderate-to-high income residentis in the area. Given these suppositions we consider two scenarios: 
 
-1. **Market Rate Infill**: development of infill market-rate housing is facilitated to the point where all market-rate housing is placed in infill areas and income-restircted housing is constructed in farther-flung locations or, 
+1. **Market Rate Infill Scenario**: development of infill market-rate housing is facilitated to the point where all market-rate housing is placed in infill areas and income-restricted housing is constructed in farther-flung locations and, 
 
-2. **Affordable Infill**: subsidies for income-resticted housing are vastly increased and all of this housing is constructed in infill areas, but no policies are put in place to facilitate the development of new market-rate units in infill areas.
+2. **Affordable Infill Scenario**: subsidies for income-resticted housing are vastly increased and all of this housing is constructed in infill areas, but no policies are put in place to facilitate the development of new market-rate units in infill areas.
 
-The thought experiment isolates the impact of income mix by geography. It also acknolwedges that, while the affordable housing development system in California creates a system of financing that promotes the GHG-resposible siting of housing, this goal has not yet been actualized in the various systems for market-rate development. While efforts have been made to attempt to push municipalities to adjust their land use regulations to facilitate the GHG-resposible development of new housing supply (particularly the state's requirements for Regional Housing Needs Allocations (RHNA), Annual Progress Reports (APRs), and housing elements in comprehensive plans), these systems are ineffective.
+The thought experiment isolates the impact of income mix by geography. It also acknolwedges that, while the affordable housing development system in California creates a system of financing that promotes the GHG-resposible siting of housing, this goal has not yet been actualized in the various systems for market-rate development. While efforts have been made to attempt to push municipalities to adjust their land use regulations to facilitate the GHG-resposible development of new housing supply (particularly the state's requirements for Regional Housing Needs Allocations (RHNA), Annual Progress Reports (APRs), and housing elements in comprehensive plans), these systems have failed to generate a set of policies at the local level to facilitate the development of infill housing.
 
 ## Results
 
@@ -421,8 +421,6 @@ big_table <- left_join(synth_hh, select(puma_table, puma12, PUMA12_Name, region,
 # pumashape_f <- fortify(pumashape)
 # pumashape$id <- row.names(pumashape@data)
 # pumashape_f <- left_join(pumashape_f, pumashape@data, by = c('order' = 'id'))
-```
-```{r shape_join, include = FALSE}
 pumashape_joined <- left_join(pumashape_raw, big_table, by = c('PUMACE10' = 'puma'))
 # So in the absence of professional help to deal with the simultaneous equations problems, let's do this:
 # 1: use the development allocation and population projections to allocate a maximum number of _people_ to a PUMA
@@ -706,34 +704,50 @@ ggplot() +
 # This means I'll also need to crosswalk counties to PUMAs
 ```
 
-The California Department of Finance projects that the state will add `r prettyNum(as.integer(40719999-39059809), big.mark = ",")` new residents in `r prettyNum(as.integer(13864699-13236154), big.mark = ",")` households. This analysis assumes that the growth projected by the department of finance over the next 5 years will be accomodated with new housing construction and that this volume will roughly follow the regional patterns predicted by the department of finance. Within each region the neighborhood patterns of development will reflect the patterns of the past 5 years. (See the appendix for a description of the methods.)
+The California Department of Finance projects that the state will add `r prettyNum(as.integer(40719999-39059809), big.mark = ",")` new residents in approximately `r prettyNum(as.integer(13864699-13236154), big.mark = ",")` households over the next five years. This analysis assumes that this growth will be accomodated with new housing construction and that this volume will roughly follow the regional patterns predicted by the Department of Finance. Within each region we assume the neighborhood patterns of residential construction will reflect the patterns of the past 5 years.
 
-In this thought experiment there is no difference in the location of new development. The same sites are developed in the same cities and suburbs. The difference comes from the buildings that are developed, and whether the buildings are income-restricted or not. In scenario 1 the 
+In this thought experiment there is no difference in the location of new development between the two scenarios. The map below shows the similarity between the scenarios. The outlines within the state show the study areas to which households are allocated (these are "public use microdata areas" or "PUMAs" designated by the Census). The orange circles represent the number of new units added to each area. The maps show that the geographic pattern of development is nearly identical in the scenarios. (Though not exactly identical --- differences arise because the scenarios place the same number of _people_ in each area. The number of _units_ that this population translates to will vary depending on the income of the new residents.) The same sites are developed in the same cities and suburbs. 
 
-To take the example of the San Francisco Bay Area, under a priority affordable infill scenario extremely low income families will be. concentrated in the seven analysis areas in San Francisco. This is shown below
+```{r map_whole, echo = FALSE}
+pumapoint_aggr <- puma_point %>% 
+  group_by(PUMACE10) %>% 
+  summarise(infill_aff_hh_tot = sum(infill_aff_hh),
+            infill_mkt_rte_hh_tot = sum(infill_mkt_rate_hh))
+ggplot() + geom_sf(data = filter(pumashape_joined, inc_bin == "XLI")) +
+  geom_sf(aes(size = infill_aff_hh_tot, color = "orange"), data = pumapoint_aggr, pch = 1) + scale_size(range = c(0, 6)) +
+  ggtitle("Household Distribution: \nAffordable Infill Scenario") +
+  coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
+  theme_bw() + theme(legend.position="none")
+ggplot() + geom_sf(data = filter(pumashape_joined, inc_bin == "XLI")) +
+  geom_sf(aes(size = infill_mkt_rte_hh_tot, color = "orange"), data = pumapoint_aggr, pch = 1) + scale_size(range = c(0, 6)) +
+  ggtitle("Household Distribution: \nMarket-Rate Infill Scenario") +
+  coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
+  theme_bw() + theme(legend.position="none")
+```
 
-```{r map_egs, include = FALSE}
-ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "XLI")) +
+The differences between the scenarios arises from the unit characteristics of the buildings that are developed, and whether the buildings are income-restricted ("affordable") or not. The maps below show the differences between the scenarios in the San Francisco Bay Area. As in the previous maps the size of the orange circles indicates the the number of new units developed in each area. The areas are also color-coded to show the average per-household GHG footprint for the relevant income level, with darker blue indicating lower GHG emissions and lighter blue indicating higher per-person GHG footprints. In this scenario the lowest income households are concentrated in the densest, most transit-rich, and lowest GHG-intensive areas of the region: San Francisco and the central city areas of the other major Bay Area cities of Oakland, Hayward, Richmond, and San Jose. With these infill sites "taken up" by affordable development in this scenario, higher income households are crowded out of the lowest GHG areas of the Bay area and are developed in suburban areas.
+
+```{r map_egs, echo = FALSE}
+ggplot() + geom_sf(aes(fill = ghg_per_person, size = 0.5), data = filter(pumashape_joined, inc_bin == "XLI")) +
   geom_sf(aes(size = infill_aff_hh, color = "orange"), data = filter(puma_point, inc_bin == "XLI"), pch = 1) + scale_size(range = c(0, 6)) +
-  ggtitle("Extremely-Low Income Households Distribution \nAffordable Infill Scenario") +
+  ggtitle("Extremely-Low Income Household Distribution: \nAffordable Infill Scenario") +
   coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
   theme_bw()
-ggplot() + geom_sf(aes(fill = ghg_per_hh, size = 0.5), data = filter(pumashape_joined, inc_bin == "MOD2HI")) +
+ggplot() + geom_sf(aes(fill = ghg_per_person, size = 0.5), data = filter(pumashape_joined, inc_bin == "MOD2HI")) +
   geom_sf(aes(size = infill_aff_hh, color = "orange"), data = filter(puma_point, inc_bin == "MOD2HI"), pch = 1) + scale_size(range = c(0, 6)) +
-  ggtitle("Moderate-to-High Income Households Distribution \nAffordable Infill Scenario") +
+  ggtitle("Moderate-to-High Income Household Distribution: \nAffordable Infill Scenario") +
   coord_sf(xlim = c(-123, -121),ylim = c(37, 38.5)) +
   theme_bw()
 ```
 
-This analysis is conservative. 
+The maps above reveal an interesting, but incidental, finding of the analysis --- that, controlling for household incomes, the GHG intensity of areas varies by income category. The general direction of the impact of income and geogaphy are as expected: central cities tend to have the lowest per-person GHG footprints, while suburban and exurban areas tend to have the highest footprints, and income has a powerful impact on consumption levels which in turn has a big impact on GHG footprints. The general direction of the influence of geography is complicated slightly when considering different income bands. For example, within Marin County the lowest per-person GHG footprints are in the denser areas around San Rafael for the lowest-income households, but the denser areas of Marin actually have slightly higher per-person GHG footprints for higher-income households.
 
-If the lowest income households are placed in the lowest HH GHG areas:
-[Table that breaks out total GHGe by income bracket, summed up across the state, with a total row at the bottom]
+The table below summarizes the results of the analysis, showing the total volume of emissions, the total number of households, and the per-household emissions by income band in the two scenarios. 
 ```{r results_table, echo= FALSE, results = 'asis'}
-big_table %>% ungroup() %>% group_by(inc_bin) %>% summarize(`Households: Market Infill (1,000s)` = sum(infill_mkt_rate_hh) / 1000,
-                                              `Households: Affordable Infill (1,000s)` = sum(infill_aff_hh) / 1000,
-                                              `Emissions: Market Infill (1,000s)` = sum(infill_mkt_rate_ghg) / 1000,
+big_table %>% ungroup() %>% group_by(inc_bin) %>% summarize(`Emissions: Market Infill (1,000s)` = sum(infill_mkt_rate_ghg) / 1000,
                                               `Emissions: Affordable Infill (1,000s)`  = sum(infill_aff_ghg) / 1000,
+                                              `Households: Market Infill (1,000s)` = sum(infill_mkt_rate_hh) / 1000,
+                                              `Households: Affordable Infill (1,000s)` = sum(infill_aff_hh) / 1000,
                                               `Per-HH Emissions: Market Infill` = weighted.mean(ghg_per_hh, infill_mkt_rate_hh),
                                               `Per-HH Emissions: Affordable Infill` = weighted.mean(ghg_per_hh,infill_aff_hh)) %>%
   mutate_at(.vars = vars(`Households: Market Infill (1,000s)`, `Households: Affordable Infill (1,000s)`, `Emissions: Market Infill (1,000s)`, `Emissions: Affordable Infill (1,000s)`),
@@ -745,7 +759,7 @@ big_table %>% ungroup() %>% group_by(inc_bin) %>% summarize(`Households: Market 
   kable(format = 'markdown', format.args = list(big.mark = ','), caption = "Summary Results")
 ```
 
-The market-rate infill scenario results in `r round((((infill_mkt_rate_ghg_total - infill_aff_ghg_total) / infill_aff_ghg_total) * 100), 1)`% less total household emissions than a priority affordable infill scenario. 
+The market-rate infill scenario results in `r round((((infill_mkt_rate_ghg_total - infill_aff_ghg_total) / infill_aff_ghg_total) * 100), 1)`% less total household emissions than a priority affordable infill scenario. As expected the GHG reductions arising from siting development for higher-income families in infill areas are larger than those arising from siting lower-income families in infill areas. Interestingly, the average household size (and therefore unit size) in the market-rate infill scenario is substantially smaller than in the affordable scenario, meaning that more, but smaller units are developed. 
 
 ## References
 
@@ -763,11 +777,6 @@ Jones, C. M., & Kammen, D. M. (2015). A Consumption-Based Greenhouse Gas Invento
 
 Terner Center for Housing Innovation. (n.d.). Housing Development Dashboard. Retrieved July 1, 2017, from https://ternercenter.berkeley.edu/dashboard
 
-## Appendix
-
-Our scenarios won't assume that all low income households are in SF or not. It'll break the state up into regions and allocate households within regions. DoF releases population projections at the county level so our regions will be groups of counties. We'll divide the state up using area median income levels set by HUD. 
-
-Digital paup.
 
 ```{r present_maps, include=FALSE}
 region_map <- ggplot(pumashape_regions) + geom_sf(aes(fill = region))
